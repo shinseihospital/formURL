@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>フォーム公開ページ</title>
+  <script>
+    const startTime = new Date("2025-06-03T13:10:00+09:00");
+    const realFormUrl = "https://docs.google.com/forms/d/1z1NQpjZ2zkDNgswWS6kWRXolMOia_tgrVpYR3EZWp4I/viewform";
+    const dummyFormUrl = "https://docs.google.com/forms/d/18YB6e2HYg5zdZO2d9nUphqRdAd6CteLVY9qQCdBjLgY/viewform";
+    const endFormUrl = "https://docs.google.com/forms/d/1mFYoCLTJw5MB2oF3vEUyVh3oyOgY2X7dcySd_KaxTnM/viewform"; // ← 実際の受付終了フォームURL
+    const countApiUrl = "https://script.google.com/macros/s/AKfycbykAh_mcvSYotlgdKHJjCa9q19p6jYJEuTh3dwOGGK3MfWYy49oguYQzFGMCyUaznNQ/exec"; // ← GASのURL
+
+    async function checkAndRedirect() {
+      document.getElementById("status").textContent = "現在の受付状況を確認しています…";
+      try {
+        const res = await fetch(countApiUrl);
+        const data = await res.json();
+        const now = new Date();
+
+        let redirectUrl;
+        if (data.count >= 3) {
+          document.getElementById("status").textContent = "定員に達しました。受付は終了しました。";
+          redirectUrl = endFormUrl;
+        } else if (now < startTime) {
+          document.getElementById("status").textContent = "受付前フォームに移動します。";
+          redirectUrl = dummyFormUrl;
+        } else {
+          document.getElementById("status").textContent = "フォームに移動します。";
+          redirectUrl = realFormUrl;
+        }
+
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 3000);
+      } catch (e) {
+        document.getElementById("status").textContent = "エラーが発生しました。ページを再読み込みしてください。";
+        console.error(e);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', checkAndRedirect);
+  </script>
+</head>
+<body>
+  <h1>児童・思春期精神科外来予約受付フォームへ移動します</h1>
+  <p id="status">少々お待ちください…</p>
+</body>
+</html>
